@@ -1,3 +1,19 @@
+# freebox_remote_cli - Freebox Remote CLI
+# Copyright (C) 2014 Franck Verrot <franck@verrot.fr>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 require 'curses'
 require 'net/http'
 
@@ -5,13 +21,13 @@ HEADER   = 5
 PER_PAGE = 10
 
 class CLI
-  def initialize(title, channels, cursor = Cursor.new(0,0,0))
+  def initialize(title, channels, code, machine = "hd1", cursor = Cursor.new(0,0,0,false,0))
     @cursor = cursor
     @cursor.delegate = self
     @channels = channels
     @title = title
-    @machine = "hd1"
-    @code = "72230083"
+    @machine = machine
+    @code = code
 
     Curses.init_screen
     Curses.start_color
@@ -96,11 +112,12 @@ class CLI
       col = pos / PER_PAGE
       formatted_channel = sprintf("%-20s", name[0..19])
 
-      color, prefix = pos == @cursor.pos ? [2, "* "] : [0, "  "]
+      color  = pos == @cursor.pos ? 2 : 0
+      prefix = pos == @cursor.selected_pos ? '* ' : '  '
 
-      @win.color_set(color)
-      puts("#{prefix} #{name}", HEADER + (pos % PER_PAGE), col * 24 + 1)
-      @win.color_set(0)
+      with_color(color) do
+        puts("#{prefix} #{name}", HEADER + (pos % PER_PAGE), col * 24 + 1)
+      end
     end
   end
 end

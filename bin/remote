@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+# vi: set ft=ruby
+
 # freebox_remote_cli - Freebox Remote CLI
 # Copyright (C) 2014 Franck Verrot <franck@verrot.fr>
 
@@ -14,22 +17,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-desc "Display license information"
-task :license do
-    `open http://www.gnu.org/licenses/gpl.txt`
+$:<< 'lib'
+require 'yaml'
+require 'cli'
+require 'cursor'
+
+def onsig(win, sig)
+  win.close
+  exit sig
+end
+((1..15).to_a - [4,8,10,11]).each do |sig_num|
+  begin
+    if trap(sig_num, "SIG_IGN") != 0
+      trap(sig_num) {|sig| onsig(win, sig) }
+    end
+  rescue Exception => e
+    puts "can't trap #{e.message} #{sig_num}"
+  end
 end
 
-desc "Default task starting the remote"
-task :default do
-  $stdout.puts """
-  Freebox Remote CLI Copyright (C) 2014 Franck Verrot <franck@verrot.fr>
-  This program comes with ABSOLUTELY NO WARRANTY; for details type `rake license'.
-  This is free software, and you are welcome to redistribute it
-  under certain conditions; type `rake license' for details.
+channels   = YAML.load_file("config/channels.yml")
+box_config = YAML.load_file("config/box_config.yml")
 
-  Type [Enter] to accept. Ctrl-C to reject license.
-  """
-
-  $stdin.getc
-  sh "bin/remote"
-end
+cli = CLI.new("Freebox Remote CLI", channels, box_config['code'], box_config['machine'])
+cli.run_forever
