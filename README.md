@@ -12,6 +12,10 @@ channels... and you should too :-)
     # edit files located in the config directory...
     rake
 
+## SCREENSHOT
+
+![screenshot of the running app](https://d3j5vwomefv46c.cloudfront.net/photos/large/857844018.png)
+
 ## TODO
 
 - [ ] Fix channel numbers
